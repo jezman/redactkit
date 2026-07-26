@@ -18,22 +18,20 @@ use crate::builder::RedactorBuilder;
 /// ```
 #[derive(Debug, Clone)]
 pub struct Redactor {
-    fields: Vec<String>,
-    mask: String,
+    pub(crate) fields: Vec<String>,
+    pub(crate) mask: String,
+
+    #[cfg(feature = "regex")]
+    pub(crate) field_patterns: Vec<regex::Regex>,
+
+    #[cfg(feature = "regex")]
+    pub(crate) value_patterns: Vec<(regex::Regex, String)>,
 }
 
 impl Redactor {
     /// Creates a new [`RedactorBuilder`].
     pub fn builder() -> RedactorBuilder {
         RedactorBuilder::new()
-    }
-
-    /// Internal constructor used by the builder.
-    ///
-    /// Мы не делаем его публичным, потому что пользователь должен
-    /// создавать `Redactor` через builder.
-    pub(crate) fn from_parts(fields: Vec<String>, mask: String) -> Self {
-        Self { fields, mask }
     }
 
     /// Returns `true` if the given field name should be redacted.

@@ -19,6 +19,11 @@ use crate::redactor::Redactor;
 pub struct RedactorBuilder {
     fields: Vec<String>,
     mask: String,
+    #[cfg(feature = "regex")]
+    field_patterns: Vec<regex::Regex>,
+
+    #[cfg(feature = "regex")]
+    value_patterns: Vec<(regex::Regex, String)>,
 }
 
 impl RedactorBuilder {
@@ -29,6 +34,12 @@ impl RedactorBuilder {
         RedactorBuilder {
             fields: Vec::new(),
             mask: "******".to_string(),
+
+            #[cfg(feature = "regex")]
+            field_patterns: Vec::new(),
+
+            #[cfg(feature = "regex")]
+            value_patterns: Vec::new(),
         }
     }
 
@@ -97,6 +108,15 @@ impl RedactorBuilder {
 
     /// Builds the [`Redactor`].
     pub fn build(self) -> Redactor {
-        Redactor::from_parts(self.fields, self.mask)
+        Redactor {
+            fields: self.fields,
+            mask: self.mask,
+
+            #[cfg(feature = "regex")]
+            field_patterns: self.field_patterns,
+
+            #[cfg(feature = "regex")]
+            value_patterns: self.value_patterns,
+        }
     }
 }
