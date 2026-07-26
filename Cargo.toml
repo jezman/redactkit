@@ -5,5 +5,10 @@ edition = "2024"
 rust-version = "1.85"
 description = "Prevent accidental leakage of secrets in Debug, tracing, and serialized output"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/jezman/redactkit"
+documentation = "https://docs.rs/redactkit"
+readme = "README.md"
+keywords = ["redact", "secret", "security", "logging", "tracing"]
+categories = ["development-tools", "rust-patterns"]
 
 [dependencies]
