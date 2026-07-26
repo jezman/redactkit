@@ -24,7 +24,7 @@ Current status:
 - [x] Builder API
 - [x] Exact field-name redaction
 - [x] Custom mask support
-- [ ] Default redactor
+- [X] Default redactor
 - [ ] Derive macro
 - [ ] Regex rules
 - [ ] `tracing` integration
@@ -69,6 +69,19 @@ assert_eq!(
     redactor.redact_field("password", "hunter2"),
     "[hidden]"
 );
+```
+
+## Default redactor
+
+```rust
+use redactkit::default_redactor;
+
+let redactor = default_redactor();
+
+assert!(redactor.should_redact_field("password"));
+assert!(redactor.should_redact_field("token"));
+assert!(redactor.should_redact_field("api_key"));
+assert!(!redactor.should_redact_field("username"));
 ```
 
 #### License
