@@ -15,6 +15,9 @@ pub mod redactor;
 pub use builder::RedactorBuilder;
 pub use redactor::Redactor;
 
+#[cfg(feature = "derive")]
+pub use redactkit_derive::RedactDebug;
+
 use crate::patterns::DEFAULT_SENSITIVE_FIELDS;
 
 /// Returns a redactor with common default sensitive field names.
