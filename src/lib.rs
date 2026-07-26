@@ -9,10 +9,12 @@
 #![forbid(unsafe_code)]
 
 pub mod builder;
+pub mod error;
 pub mod patterns;
 pub mod redactor;
 
 pub use builder::RedactorBuilder;
+pub use error::Error;
 pub use redactor::Redactor;
 
 #[cfg(feature = "derive")]
