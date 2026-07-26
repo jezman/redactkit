@@ -159,13 +159,11 @@ mod tests {
 
         assert_eq!(redactor.redact_value("anything"), "******");
     }
-    
+
     #[test]
     fn field_matching_is_case_sensitive_for_now() {
-        let redactor = Redactor::builder()
-            .field("password")
-            .build();
-    
+        let redactor = Redactor::builder().field("password").build();
+
         assert!(redactor.should_redact_field("password"));
         assert!(!redactor.should_redact_field("PASSWORD"));
         assert!(!redactor.should_redact_field("Password"));
