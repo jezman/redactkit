@@ -1,14 +1,15 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! # redactkit
+//!
+//! `redactkit` helps prevent accidental leakage of passwords, tokens,
+//! API keys, and other sensitive data into debug output, logs,
+//! and serialized data.
+//!
+//! This first milestone implements only the core redaction logic.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#![forbid(unsafe_code)]
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub mod builder;
+pub mod redactor;
+
+pub use builder::RedactorBuilder;
+pub use redactor::Redactor;
