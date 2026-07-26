@@ -1,11 +1,27 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DataStruct, DeriveInput, Fields, parse_macro_input};
+use syn::{Data, DataStruct, DeriveInput, Fields, Meta, parse_macro_input};
 
 /// Derives `Debug` for structs, redacting fields marked with `#[redact]`.
 ///
-/// This is currently a scaffold: it generates a `Debug` impl that prints
-/// only the struct name. Field printing will be added in the next step.
+/// # Example
+///
+/// ```ignore
+/// use redactkit::RedactDebug;
+///
+/// #[derive(RedactDebug)]
+/// struct Config {
+///     username: String,
+///     #[redact]
+///     password: String,
+/// }
+/// ```
+///
+/// The generated `Debug` implementation will print:
+///
+/// ```text
+/// Config { username: "anna", password: "******" }
+/// ```
 #[proc_macro_derive(RedactDebug, attributes(redact))]
 pub fn derive_redact_debug(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -18,10 +34,11 @@ pub fn derive_redact_debug(input: TokenStream) -> TokenStream {
 fn expand_redact_debug(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     let name = &input.ident;
     let name_str = name.to_string();
+
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     let Data::Struct(DataStruct {
-        fields: Fields::Named(_),
+        fields: Fields::Named(named_fields),
         ..
     }) = &input.data
     else {
@@ -31,11 +48,52 @@ fn expand_redact_debug(input: DeriveInput) -> syn::Result<proc_macro2::TokenStre
         ));
     };
 
+    let mut field_outputs = Vec::new();
+
+    for field in &named_fields.named {
+        let Some(field_ident) = &field.ident else {
+            continue;
+        };
+
+        let field_name = field_ident.to_string();
+
+        if is_redacted(field)? {
+            field_outputs.push(quote! {
+                .field(#field_name, &"******")
+            });
+        } else {
+            field_outputs.push(quote! {
+                .field(#field_name, &self.#field_ident)
+            });
+        }
+    }
+
     Ok(quote! {
         impl #impl_generics ::core::fmt::Debug for #name #ty_generics #where_clause {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                f.debug_struct(#name_str).finish()
+                f.debug_struct(#name_str)
+                    #(#field_outputs)*
+                    .finish()
             }
         }
     })
+}
+
+fn is_redacted(field: &syn::Field) -> syn::Result<bool> {
+    for attr in &field.attrs {
+        if !attr.path().is_ident("redact") {
+            continue;
+        }
+
+        if !matches!(attr.meta, Meta::Path(_)) {
+            return Err(syn::Error::new_spanned(
+                attr,
+                "currently only bare `#[redact]` is supported",
+            ));
+        }
+
+        return Ok(true);
+    }
+
+    Ok(false)
 }
