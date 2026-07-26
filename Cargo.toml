@@ -33,3 +33,6 @@ derive = ["dep:redactkit-derive"]
 
 [dependencies]
 redactkit-derive = { workspace = true, optional = true }
+
+[dev-dependencies]
+trybuild = "1"
