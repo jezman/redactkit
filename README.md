@@ -18,19 +18,46 @@ For secure secret handling, consider using:
 
 ## Status
 
+This is an early preview.
+
 Current status:
 
 - [x] Core `Redactor`
 - [x] Builder API
 - [x] Exact field-name redaction
 - [x] Custom mask support
-- [X] Default redactor
-- [ ] Derive macro
+- [x] Default redactor
+- [x] Derive macro
 - [ ] Regex rules
 - [ ] `tracing` integration
 - [ ] `serde` helpers
 
-## Example
+## Derive
+
+```rust
+use redactkit::RedactDebug;
+
+#[derive(RedactDebug)]
+struct Config {
+    username: String,
+
+    #[redact]
+    password: String,
+}
+
+let config = Config {
+    username: "anna".to_string(),
+    password: "s3cr3t".to_string(),
+};
+
+let debug = format!("{config:?}");
+
+assert!(debug.contains("anna"));
+assert!(debug.contains("******"));
+assert!(!debug.contains("s3cr3t"));
+```
+
+## Builder
 
 ```rust
 use redactkit::Redactor;
@@ -44,15 +71,8 @@ assert!(redactor.should_redact_field("password"));
 assert!(redactor.should_redact_field("token"));
 assert!(!redactor.should_redact_field("username"));
 
-assert_eq!(
-    redactor.redact_field("password", "hunter2"),
-    "******"
-);
-
-assert_eq!(
-    redactor.redact_field("username", "alice"),
-    "alice"
-);
+assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
+assert_eq!(redactor.redact_field("username", "anna"), "anna");
 ```
 
 ## Custom mask
@@ -62,13 +82,10 @@ use redactkit::Redactor;
 
 let redactor = Redactor::builder()
     .field("password")
-    .mask("[hidden]")
+    .mask("[REDACTED]")
     .build();
 
-assert_eq!(
-    redactor.redact_field("password", "hunter2"),
-    "[hidden]"
-);
+assert_eq!(redactor.redact_field("password", "s3cr3t"), "[REDACTED]");
 ```
 
 ## Default redactor
