@@ -35,7 +35,7 @@ Current status:
 - [x] Default redactor
 - [x] Derive macro
 - [x] Regex rules
-- [ ] `tracing` integration
+- [x] `tracing` integration
 - [ ] `serde` helpers
 
 ## Derive
@@ -111,11 +111,12 @@ assert!(!redactor.should_redact_field("username"));
 
 `redactkit` uses optional feature flags.
 
-| Feature  | Default | Description                                |
-| -------- | ------- | ------------------------------------------ |
-| `std`    | yes     | Standard library support.                  |
-| `derive` | yes     | Enables the `RedactDebug` derive macro.    |
-| `regex`  | no      | Enables regex-based field and value rules. |
+| Feature   | Default | Description                                   |
+| --------- | ------- | --------------------------------------------- |
+| `std`     | yes     | Standard library support.                     |
+| `derive`  | yes     | Enables the `RedactDebug` derive macro.       |
+| `regex`   | no      | Enables regex-based field and value rules.    |
+| `tracing` | no      | Enables `tracing-subscriber` field redaction. |
 
 ## Regex rules
 
@@ -164,6 +165,64 @@ let result = Redactor::builder()
 
 assert!(result.is_err());
 ```
+
+## Tracing integration
+
+Enable the `tracing` feature:
+
+```toml
+[dependencies]
+redactkit = { version = "0.0.3", features = ["tracing"] }
+```
+
+Then configure tracing-subscriber to use redacting field formatter:
+
+```rust
+use tracing_subscriber::fmt;
+
+fmt()
+    .fmt_fields(redactkit::tracing::redact_fields())
+    .init();
+
+tracing::info!(user = "anna", password = "s3cr3t");
+```
+
+The log output will contain:
+
+```bash
+user="anna" password="******"
+```
+
+You can add custom sensitive fields:
+
+```rust
+use tracing_subscriber::fmt;
+
+fmt()
+    .fmt_fields(
+        redactkit::tracing::redact_fields()
+            .field("session_id")
+            .field("cookie"),
+    )
+    .init();
+```
+
+With the `regex` feature enabled, you can also use patterns:
+
+```rust
+use tracing_subscriber::fmt;
+
+fmt()
+    .fmt_fields(
+        redactkit::tracing::redact_fields()
+            .field_pattern("(?i)token|secret")
+            .unwrap(),
+    )
+    .init();
+```
+
+The tracing integration redacts formatted output only.
+It does not modify or erase original field values in memory.
 
 #### License
 
