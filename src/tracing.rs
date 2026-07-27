@@ -14,6 +14,19 @@ use tracing_subscriber::fmt::format::Writer;
 /// Create one via [`redact_fields`], optionally configure it with the
 /// builder-style methods, then pass it to
 /// `tracing_subscriber::fmt().fmt_fields(...)`.
+///
+/// # Examples
+///
+/// ```
+/// # #[cfg(feature = "tracing")]
+/// # {
+/// use tracing_subscriber::fmt;
+///
+/// fmt()
+///     .fmt_fields(redactkit::tracing::redact_fields())
+///     .init();
+/// # }
+/// ```
 #[derive(Debug)]
 pub struct RedactFields {
     redactor: Redactor,
@@ -44,12 +57,34 @@ pub fn redact_fields() -> RedactFields {
 
 impl RedactFields {
     /// Adds a field name to redact.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "tracing")]
+    /// # {
+    /// use redactkit::tracing::redact_fields;
+    ///
+    /// let fields = redact_fields().field("session_id");
+    /// # }
+    /// ```
     pub fn field(mut self, name: impl Into<String>) -> Self {
         self.redactor.fields.push(name.into());
         self
     }
 
     /// Adds multiple field names to redact.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "tracing")]
+    /// # {
+    /// use redactkit::tracing::redact_fields;
+    ///
+    /// let fields = redact_fields().fields(["session_id", "cookie"]);
+    /// # }
+    /// ```
     pub fn fields<I, S>(mut self, names: I) -> Self
     where
         I: IntoIterator<Item = S>,
@@ -62,6 +97,17 @@ impl RedactFields {
     }
 
     /// Sets a custom mask.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "tracing")]
+    /// # {
+    /// use redactkit::tracing::redact_fields;
+    ///
+    /// let fields = redact_fields().mask("[hidden]");
+    /// # }
+    /// ```
     pub fn mask(mut self, mask: impl Into<String>) -> Self {
         self.redactor.mask = mask.into();
         self
@@ -70,6 +116,19 @@ impl RedactFields {
     /// Adds a regex pattern matched against field names.
     ///
     /// This method is available only with the `regex` feature.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(all(feature = "tracing", feature = "regex"))]
+    /// # {
+    /// use redactkit::tracing::redact_fields;
+    ///
+    /// let fields = redact_fields()
+    ///     .field_pattern("(?i)token")
+    ///     .unwrap();
+    /// # }
+    /// ```
     #[cfg(feature = "regex")]
     pub fn field_pattern(mut self, pattern: &str) -> Result<Self, crate::Error> {
         self.redactor.field_patterns.push(compile(pattern)?);
@@ -81,6 +140,19 @@ impl RedactFields {
     /// Matching parts of the value will be replaced with `replacement`.
     ///
     /// This method is available only with the `regex` feature.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(all(feature = "tracing", feature = "regex"))]
+    /// # {
+    /// use redactkit::tracing::redact_fields;
+    ///
+    /// let fields = redact_fields()
+    ///     .value_pattern(r"\d{4}", "****")
+    ///     .unwrap();
+    /// # }
+    /// ```
     #[cfg(feature = "regex")]
     pub fn value_pattern(mut self, pattern: &str, replacement: &str) -> Result<Self, crate::Error> {
         let re = compile(pattern)?;
