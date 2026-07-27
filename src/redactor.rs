@@ -12,28 +12,26 @@ use crate::builder::RedactorBuilder;
 ///     .build();
 ///
 /// assert_eq!(
-///     redactor.redact_field("password", "hunter2"),
+///     redactor.redact_field("password", "s3cr3t"),
 ///     "******"
 /// );
 /// ```
 #[derive(Debug, Clone)]
 pub struct Redactor {
-    fields: Vec<String>,
-    mask: String,
+    pub(crate) fields: Vec<String>,
+    pub(crate) mask: String,
+
+    #[cfg(feature = "regex")]
+    pub(crate) field_patterns: Vec<regex::Regex>,
+
+    #[cfg(feature = "regex")]
+    pub(crate) value_patterns: Vec<(regex::Regex, String)>,
 }
 
 impl Redactor {
     /// Creates a new [`RedactorBuilder`].
     pub fn builder() -> RedactorBuilder {
         RedactorBuilder::new()
-    }
-
-    /// Internal constructor used by the builder.
-    ///
-    /// Мы не делаем его публичным, потому что пользователь должен
-    /// создавать `Redactor` через builder.
-    pub(crate) fn from_parts(fields: Vec<String>, mask: String) -> Self {
-        Self { fields, mask }
     }
 
     /// Returns `true` if the given field name should be redacted.
@@ -53,7 +51,18 @@ impl Redactor {
     /// assert!(!redactor.should_redact_field("username"));
     /// ```
     pub fn should_redact_field(&self, field: &str) -> bool {
-        self.fields.iter().any(|name| name == field)
+        if self.fields.iter().any(|name| name == field) {
+            return true;
+        }
+
+        #[cfg(feature = "regex")]
+        {
+            if self.field_patterns.iter().any(|re| re.is_match(field)) {
+                return true;
+            }
+        }
+
+        false
     }
 
     /// Redacts the value if the field is sensitive.
@@ -71,21 +80,31 @@ impl Redactor {
     ///     .build();
     ///
     /// assert_eq!(
-    ///     redactor.redact_field("password", "hunter2"),
+    ///     redactor.redact_field("password", "s3cr3t"),
     ///     "******"
     /// );
     ///
     /// assert_eq!(
-    ///     redactor.redact_field("username", "alice"),
-    ///     "alice"
+    ///     redactor.redact_field("username", "anna"),
+    ///     "anna"
     /// );
     /// ```
     pub fn redact_field(&self, field: &str, value: &str) -> String {
         if self.should_redact_field(field) {
-            self.mask.clone()
-        } else {
-            value.to_string()
+            return self.mask.clone();
         }
+
+        #[cfg_attr(not(feature = "regex"), allow(unused_mut))]
+        let mut result = value.to_string();
+
+        #[cfg(feature = "regex")]
+        {
+            for (re, replacement) in &self.value_patterns {
+                result = re.replace_all(&result, replacement.as_str()).into_owned();
+            }
+        }
+
+        result
     }
 
     /// Redacts a value unconditionally.
@@ -101,7 +120,7 @@ impl Redactor {
     ///     .field("password")
     ///     .build();
     ///
-    /// assert_eq!(redactor.redact_value("hunter2"), "******");
+    /// assert_eq!(redactor.redact_value("s3cr3t"), "******");
     /// ```
     pub fn redact_value(&self, _value: &str) -> String {
         self.mask.clone()
@@ -124,14 +143,14 @@ mod tests {
     fn redact_field_returns_mask_for_sensitive_field() {
         let redactor = Redactor::builder().field("password").build();
 
-        assert_eq!(redactor.redact_field("password", "hunter2"), "******");
+        assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
     }
 
     #[test]
     fn redact_field_returns_original_for_non_sensitive_field() {
         let redactor = Redactor::builder().field("password").build();
 
-        assert_eq!(redactor.redact_field("username", "alice"), "alice");
+        assert_eq!(redactor.redact_field("username", "anna"), "anna");
     }
 
     #[test]
@@ -150,7 +169,7 @@ mod tests {
             .mask("[hidden]")
             .build();
 
-        assert_eq!(redactor.redact_field("password", "hunter2"), "[hidden]");
+        assert_eq!(redactor.redact_field("password", "s3cr3t"), "[hidden]");
     }
 
     #[test]

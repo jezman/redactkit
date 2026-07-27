@@ -9,10 +9,12 @@
 #![forbid(unsafe_code)]
 
 pub mod builder;
+pub mod error;
 pub mod patterns;
 pub mod redactor;
 
 pub use builder::RedactorBuilder;
+pub use error::Error;
 pub use redactor::Redactor;
 
 #[cfg(feature = "derive")]
@@ -82,9 +84,9 @@ mod tests {
     fn default_redactor_masks_values() {
         let redactor = default_redactor();
 
-        assert_eq!(redactor.redact_field("password", "hunter2"), "******");
+        assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
 
-        assert_eq!(redactor.redact_field("username", "alice"), "alice");
+        assert_eq!(redactor.redact_field("username", "anna"), "anna");
     }
 
     #[test]
