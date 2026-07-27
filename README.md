@@ -224,6 +224,56 @@ fmt()
 The tracing integration redacts formatted output only.
 It does not modify or erase original field values in memory.
 
+## Motivation
+
+Accidental secret leakage in logs is a common security incident.
+A single `tracing::debug!` or `println!("{:?}", user)` can expose
+passwords, tokens, API keys, and session identifiers.
+
+`redactkit` provides a small, explicit toolkit for redacting such
+values at formatting time, so that sensitive fields are replaced with
+a mask before they reach logs, debug output, or error messages.
+
+## When to use redactkit
+
+Use `redactkit` when you need to:
+
+- redact sensitive fields in `Debug` output of structs;
+- redact fields in `tracing` log output;
+- build a custom redaction policy with exact field names or regex rules;
+- keep the original values intact in memory and only redact formatted output.
+
+## When NOT to use redactkit
+
+`redactkit` is **not** a memory-protection crate.
+
+It does not:
+
+- erase secrets from memory;
+- prevent access to original field values;
+- encrypt data at rest or in transit;
+- replace proper secret management.
+
+If you need to wrap secrets and control their lifetime, consider
+combining `redactkit` with a dedicated crate such as `secrecy`.
+
+## Comparison with `secrecy`
+
+`secrecy` and `redactkit` solve related but different problems.
+
+| Crate | Primary focus | How it works |
+| --- | --- | --- |
+| `secrecy` | Secret storage and lifetime | Wraps a secret value in `Secret<T>` and prevents accidental `Debug`/`Display` leakage. |
+| `redactkit` | Output redaction | Redacts selected fields when formatting output, while original values remain accessible in memory. |
+
+A typical split:
+
+- use `secrecy` when you want to wrap a secret value itself;
+- use `redactkit` when you want to redact selected fields in logs, debug output, or tracing output.
+
+They can also be used together: `secrecy` protects the value,
+while `redactkit` helps enforce redaction policies for formatted output.
+
 #### License
 
 <sup>
