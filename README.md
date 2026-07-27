@@ -36,7 +36,9 @@ Current status:
 - [x] Derive macro
 - [x] Regex rules
 - [x] `tracing` integration
-- [ ] `serde` helpers
+- [x] Examples
+- [x] CI quality gates
+- [ ] `serde` helpers (planned for 0.2)
 
 ## Derive
 
@@ -124,7 +126,7 @@ Enable the `regex` feature:
 
 ```toml
 [dependencies]
-redactkit = { version = "0.0.2", features = ["regex"] }
+redactkit = { version = "0.1.0", features = ["regex"] }
 ```
 
 Then use regex-based rules:
@@ -172,7 +174,7 @@ Enable the `tracing` feature:
 
 ```toml
 [dependencies]
-redactkit = { version = "0.0.3", features = ["tracing"] }
+redactkit = { version = "0.1.0", features = ["tracing"] }
 ```
 
 Then configure tracing-subscriber to use redacting field formatter:
@@ -261,10 +263,10 @@ combining `redactkit` with a dedicated crate such as `secrecy`.
 
 `secrecy` and `redactkit` solve related but different problems.
 
-| Crate | Primary focus | How it works |
-| --- | --- | --- |
-| `secrecy` | Secret storage and lifetime | Wraps a secret value in `Secret<T>` and prevents accidental `Debug`/`Display` leakage. |
-| `redactkit` | Output redaction | Redacts selected fields when formatting output, while original values remain accessible in memory. |
+| Crate       | Primary focus               | How it works                                                                                       |
+| ----------- | --------------------------- | -------------------------------------------------------------------------------------------------- |
+| `secrecy`   | Secret storage and lifetime | Wraps a secret value in `Secret<T>` and prevents accidental `Debug`/`Display` leakage.             |
+| `redactkit` | Output redaction            | Redacts selected fields when formatting output, while original values remain accessible in memory. |
 
 A typical split:
 

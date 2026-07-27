@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0]
+
+### Added
+
+- Examples:
+  - `examples/basic.rs`
+  - `examples/derive_debug.rs`
+  - `examples/redactor_rules.rs`
+  - `examples/custom_redactor.rs`
+- CI: `--no-default-features` checks.
+- CI: MSRV check (`1.85`).
+- CI: `cargo package --workspace`.
+- CI: split into `lint`, `test`, `docs`, `msrv`, `package` jobs.
+
+### Fixed
+
+- Derive doc example is now gated behind the `derive` feature.
+
 ## [0.0.3]
 
 ### Added
@@ -60,6 +78,7 @@ Initial early preview release.
 - No tracing integration yet.
 - No serde integration yet.
 
+[0.1.0]: https://github.com/jezman/redactkit/compare/v0.0.3...v0.1.0
 [0.0.3]: https://github.com/jezman/redactkit/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/jezman/redactkit/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/jezman/redactkit/releases/tag/v0.0.1
