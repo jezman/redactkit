@@ -51,7 +51,18 @@ impl Redactor {
     /// assert!(!redactor.should_redact_field("username"));
     /// ```
     pub fn should_redact_field(&self, field: &str) -> bool {
-        self.fields.iter().any(|name| name == field)
+        if self.fields.iter().any(|name| name == field) {
+            return true;
+        }
+
+        #[cfg(feature = "regex")]
+        {
+            if self.field_patterns.iter().any(|re| re.is_match(field)) {
+                return true;
+            }
+        }
+
+        false
     }
 
     /// Redacts the value if the field is sensitive.
@@ -80,10 +91,20 @@ impl Redactor {
     /// ```
     pub fn redact_field(&self, field: &str, value: &str) -> String {
         if self.should_redact_field(field) {
-            self.mask.clone()
-        } else {
-            value.to_string()
+            return self.mask.clone();
         }
+
+        #[cfg_attr(not(feature = "regex"), allow(unused_mut))]
+        let mut result = value.to_string();
+
+        #[cfg(feature = "regex")]
+        {
+            for (re, replacement) in &self.value_patterns {
+                result = re.replace_all(&result, replacement.as_str()).into_owned();
+            }
+        }
+
+        result
     }
 
     /// Redacts a value unconditionally.
