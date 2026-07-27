@@ -123,6 +123,24 @@ impl RedactorBuilder {
     /// Adds a regex pattern matched against field names.
     ///
     /// This method is available only with the `regex` feature.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "regex")]
+    /// # {
+    /// use redactkit::Redactor;
+    ///
+    /// let redactor = Redactor::builder()
+    ///     .field_pattern("(?i)token|secret")
+    ///     .unwrap()
+    ///     .build();
+    ///
+    /// assert!(redactor.should_redact_field("api_token"));
+    /// assert!(redactor.should_redact_field("CLIENT_SECRET"));
+    /// assert!(!redactor.should_redact_field("username"));
+    /// # }
+    /// ```
     #[cfg(feature = "regex")]
     pub fn field_pattern(mut self, pattern: &str) -> Result<Self, crate::Error> {
         let re = regex::Regex::new(pattern).map_err(|source| crate::Error::InvalidRegex {
@@ -140,6 +158,25 @@ impl RedactorBuilder {
     /// Matching parts of the value will be replaced with `replacement`.
     ///
     /// This method is available only with the `regex` feature.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[cfg(feature = "regex")]
+    /// # {
+    /// use redactkit::Redactor;
+    ///
+    /// let redactor = Redactor::builder()
+    ///     .value_pattern(r"\d{4}", "****")
+    ///     .unwrap()
+    ///     .build();
+    ///
+    /// assert_eq!(
+    ///     redactor.redact_field("note", "card 1234 ok"),
+    ///     "card **** ok"
+    /// );
+    /// # }
+    /// ```
     #[cfg(feature = "regex")]
     pub fn value_pattern(mut self, pattern: &str, replacement: &str) -> Result<Self, crate::Error> {
         let re = regex::Regex::new(pattern).map_err(|source| crate::Error::InvalidRegex {
