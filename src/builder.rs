@@ -1,3 +1,5 @@
+//! Builder for [`Redactor`].
+
 use crate::redactor::Redactor;
 
 /// Builder for [`Redactor`].
@@ -10,10 +12,12 @@ use crate::redactor::Redactor;
 /// let redactor = Redactor::builder()
 ///     .field("password")
 ///     .field("token")
+///     .mask("[hidden]")
 ///     .build();
 ///
-/// assert!(redactor.should_redact_field("password"));
-/// assert!(redactor.should_redact_field("token"));
+/// assert_eq!(redactor.redact_field("password", "s3cr3t"), "[hidden]");
+/// assert_eq!(redactor.redact_field("token", "qwerty"), "[hidden]");
+/// assert_eq!(redactor.redact_field("username", "anna"), "anna");
 /// ```
 #[derive(Debug)]
 pub struct RedactorBuilder {
@@ -106,7 +110,19 @@ impl RedactorBuilder {
         self
     }
 
-    /// Builds the [`Redactor`].
+    /// Builds the configured [`Redactor`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use redactkit::Redactor;
+    ///
+    /// let redactor = Redactor::builder()
+    ///     .field("password")
+    ///     .build();
+    ///
+    /// assert!(redactor.should_redact_field("password"));
+    /// ```
     pub fn build(self) -> Redactor {
         Redactor {
             fields: self.fields,
