@@ -1,6 +1,10 @@
 use crate::builder::RedactorBuilder;
+use crate::patterns::DEFAULT_SENSITIVE_FIELDS;
 
-/// Redacts sensitive fields and values.
+/// Redacts sensitive field values.
+///
+/// Create one via [`Redactor::builder`] or
+/// [`default_redactor`].
 ///
 /// # Examples
 ///
@@ -11,10 +15,8 @@ use crate::builder::RedactorBuilder;
 ///     .field("password")
 ///     .build();
 ///
-/// assert_eq!(
-///     redactor.redact_field("password", "s3cr3t"),
-///     "******"
-/// );
+/// assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
+/// assert_eq!(redactor.redact_field("username", "anna"), "anna");
 /// ```
 #[derive(Debug, Clone)]
 pub struct Redactor {
@@ -29,7 +31,20 @@ pub struct Redactor {
 }
 
 impl Redactor {
-    /// Creates a new [`RedactorBuilder`].
+    /// Creates a new builder for configuring a [`Redactor`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use redactkit::Redactor;
+    ///
+    /// let redactor = Redactor::builder()
+    ///     .field("password")
+    ///     .mask("[hidden]")
+    ///     .build();
+    ///
+    /// assert_eq!(redactor.redact_field("password", "s3cr3t"), "[hidden]");
+    /// ```
     pub fn builder() -> RedactorBuilder {
         RedactorBuilder::new()
     }
@@ -65,10 +80,10 @@ impl Redactor {
         false
     }
 
-    /// Redacts the value if the field is sensitive.
+    /// Returns a redacted version of `value` if `field_name` is sensitive.
     ///
-    /// If the field is sensitive, returns the mask.
-    /// Otherwise returns the original value.
+    /// If the field name matches a configured rule, the mask is returned.
+    /// Otherwise, configured value patterns are applied.
     ///
     /// # Examples
     ///
@@ -79,15 +94,8 @@ impl Redactor {
     ///     .field("password")
     ///     .build();
     ///
-    /// assert_eq!(
-    ///     redactor.redact_field("password", "s3cr3t"),
-    ///     "******"
-    /// );
-    ///
-    /// assert_eq!(
-    ///     redactor.redact_field("username", "anna"),
-    ///     "anna"
-    /// );
+    /// assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
+    /// assert_eq!(redactor.redact_field("username", "anna"), "anna");
     /// ```
     pub fn redact_field(&self, field: &str, value: &str) -> String {
         if self.should_redact_field(field) {
@@ -124,6 +132,35 @@ impl Redactor {
     /// ```
     pub fn redact_value(&self, _value: &str) -> String {
         self.mask.clone()
+    }
+}
+
+/// Returns a [`Redactor`] with common sensitive field names.
+///
+/// # Examples
+///
+/// ```
+/// use redactkit::default_redactor;
+///
+/// let redactor = default_redactor();
+///
+/// assert!(redactor.should_redact_field("password"));
+/// assert!(redactor.should_redact_field("token"));
+/// assert!(redactor.should_redact_field("api_key"));
+/// assert!(!redactor.should_redact_field("username"));
+///
+/// assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
+/// assert_eq!(redactor.redact_field("api_key", "qwerty123456"), "******");
+/// ```
+pub fn default_redactor() -> Redactor {
+    Redactor::builder()
+        .fields(DEFAULT_SENSITIVE_FIELDS.iter().copied())
+        .build()
+}
+
+impl Default for Redactor {
+    fn default() -> Self {
+        default_redactor()
     }
 }
 
@@ -186,5 +223,51 @@ mod tests {
         assert!(redactor.should_redact_field("password"));
         assert!(!redactor.should_redact_field("PASSWORD"));
         assert!(!redactor.should_redact_field("Password"));
+    }
+
+    #[test]
+    fn default_redactor_redacts_common_fields() {
+        let redactor = default_redactor();
+
+        assert!(redactor.should_redact_field("password"));
+        assert!(redactor.should_redact_field("passwd"));
+        assert!(redactor.should_redact_field("secret"));
+        assert!(redactor.should_redact_field("token"));
+        assert!(redactor.should_redact_field("access_token"));
+        assert!(redactor.should_redact_field("refresh_token"));
+        assert!(redactor.should_redact_field("api_key"));
+        assert!(redactor.should_redact_field("apikey"));
+        assert!(redactor.should_redact_field("authorization"));
+        assert!(redactor.should_redact_field("private_key"));
+        assert!(redactor.should_redact_field("client_secret"));
+        assert!(redactor.should_redact_field("database_url"));
+    }
+
+    #[test]
+    fn default_redactor_does_not_redact_random_fields() {
+        let redactor = default_redactor();
+
+        assert!(!redactor.should_redact_field("username"));
+        assert!(!redactor.should_redact_field("email"));
+        assert!(!redactor.should_redact_field("host"));
+        assert!(!redactor.should_redact_field("port"));
+    }
+
+    #[test]
+    fn default_redactor_masks_values() {
+        let redactor = default_redactor();
+
+        assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
+
+        assert_eq!(redactor.redact_field("username", "anna"), "anna");
+    }
+
+    #[test]
+    fn redactor_default_is_same_as_default_redactor() {
+        let from_default = Redactor::default();
+        let from_function = default_redactor();
+
+        assert!(from_default.should_redact_field("password"));
+        assert!(from_function.should_redact_field("password"));
     }
 }

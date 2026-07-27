@@ -35,7 +35,7 @@ Current status:
 - [x] Default redactor
 - [x] Derive macro
 - [x] Regex rules
-- [ ] `tracing` integration
+- [x] `tracing` integration
 - [ ] `serde` helpers
 
 ## Derive
@@ -111,11 +111,12 @@ assert!(!redactor.should_redact_field("username"));
 
 `redactkit` uses optional feature flags.
 
-| Feature  | Default | Description                                |
-| -------- | ------- | ------------------------------------------ |
-| `std`    | yes     | Standard library support.                  |
-| `derive` | yes     | Enables the `RedactDebug` derive macro.    |
-| `regex`  | no      | Enables regex-based field and value rules. |
+| Feature   | Default | Description                                   |
+| --------- | ------- | --------------------------------------------- |
+| `std`     | yes     | Standard library support.                     |
+| `derive`  | yes     | Enables the `RedactDebug` derive macro.       |
+| `regex`   | no      | Enables regex-based field and value rules.    |
+| `tracing` | no      | Enables `tracing-subscriber` field redaction. |
 
 ## Regex rules
 
@@ -164,6 +165,114 @@ let result = Redactor::builder()
 
 assert!(result.is_err());
 ```
+
+## Tracing integration
+
+Enable the `tracing` feature:
+
+```toml
+[dependencies]
+redactkit = { version = "0.0.3", features = ["tracing"] }
+```
+
+Then configure tracing-subscriber to use redacting field formatter:
+
+```rust
+use tracing_subscriber::fmt;
+
+fmt()
+    .fmt_fields(redactkit::tracing::redact_fields())
+    .init();
+
+tracing::info!(user = "anna", password = "s3cr3t");
+```
+
+The log output will contain:
+
+```bash
+user="anna" password="******"
+```
+
+You can add custom sensitive fields:
+
+```rust
+use tracing_subscriber::fmt;
+
+fmt()
+    .fmt_fields(
+        redactkit::tracing::redact_fields()
+            .field("session_id")
+            .field("cookie"),
+    )
+    .init();
+```
+
+With the `regex` feature enabled, you can also use patterns:
+
+```rust
+use tracing_subscriber::fmt;
+
+fmt()
+    .fmt_fields(
+        redactkit::tracing::redact_fields()
+            .field_pattern("(?i)token|secret")
+            .unwrap(),
+    )
+    .init();
+```
+
+The tracing integration redacts formatted output only.
+It does not modify or erase original field values in memory.
+
+## Motivation
+
+Accidental secret leakage in logs is a common security incident.
+A single `tracing::debug!` or `println!("{:?}", user)` can expose
+passwords, tokens, API keys, and session identifiers.
+
+`redactkit` provides a small, explicit toolkit for redacting such
+values at formatting time, so that sensitive fields are replaced with
+a mask before they reach logs, debug output, or error messages.
+
+## When to use redactkit
+
+Use `redactkit` when you need to:
+
+- redact sensitive fields in `Debug` output of structs;
+- redact fields in `tracing` log output;
+- build a custom redaction policy with exact field names or regex rules;
+- keep the original values intact in memory and only redact formatted output.
+
+## When NOT to use redactkit
+
+`redactkit` is **not** a memory-protection crate.
+
+It does not:
+
+- erase secrets from memory;
+- prevent access to original field values;
+- encrypt data at rest or in transit;
+- replace proper secret management.
+
+If you need to wrap secrets and control their lifetime, consider
+combining `redactkit` with a dedicated crate such as `secrecy`.
+
+## Comparison with `secrecy`
+
+`secrecy` and `redactkit` solve related but different problems.
+
+| Crate | Primary focus | How it works |
+| --- | --- | --- |
+| `secrecy` | Secret storage and lifetime | Wraps a secret value in `Secret<T>` and prevents accidental `Debug`/`Display` leakage. |
+| `redactkit` | Output redaction | Redacts selected fields when formatting output, while original values remain accessible in memory. |
+
+A typical split:
+
+- use `secrecy` when you want to wrap a secret value itself;
+- use `redactkit` when you want to redact selected fields in logs, debug output, or tracing output.
+
+They can also be used together: `secrecy` protects the value,
+while `redactkit` helps enforce redaction policies for formatted output.
 
 #### License
 
