@@ -17,6 +17,8 @@
 //! ## Derive example
 //!
 //! ```
+//! # #[cfg(feature = "derive")]
+//! # {
 //! use redactkit::RedactDebug;
 //!
 //! #[derive(RedactDebug)]
@@ -35,6 +37,7 @@
 //!     format!("{user:?}"),
 //!     "User { username: \"anna\", password: \"******\" }"
 //! );
+//! # }
 //! ```
 //!
 //! ## Builder example
