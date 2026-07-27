@@ -1,10 +1,97 @@
 //! # redactkit
 //!
-//! `redactkit` helps prevent accidental leakage of passwords, tokens,
-//! API keys, and other sensitive data into debug output, logs,
-//! and serialized data.
+//! Small toolkit for redacting sensitive data in debug output and tracing logs.
 //!
-//! This first milestone implements only the core redaction logic.
+//! > **Warning:** `redactkit` redacts formatted output only.
+//! > It does not modify or erase original field values in memory.
+//!
+//! ## Features
+//!
+//! | Feature | Default | Description |
+//! | --- | --- | --- |
+//! | `std` | yes | Standard library support. |
+//! | `derive` | yes | Enables the `RedactDebug` derive macro. |
+//! | `regex` | no | Enables regex-based field and value rules. |
+//! | `tracing` | no | Enables `tracing-subscriber` field redaction. |
+//!
+//! ## Derive example
+//!
+//! ```
+//! use redactkit::RedactDebug;
+//!
+//! #[derive(RedactDebug)]
+//! struct User {
+//!     username: String,
+//!     #[redact]
+//!     password: String,
+//! }
+//!
+//! let user = User {
+//!     username: "anna".to_string(),
+//!     password: "s3cr3t".to_string(),
+//! };
+//!
+//! assert_eq!(
+//!     format!("{user:?}"),
+//!     "User { username: \"anna\", password: \"******\" }"
+//! );
+//! ```
+//!
+//! ## Builder example
+//!
+//! ```
+//! use redactkit::Redactor;
+//!
+//! let redactor = Redactor::builder()
+//!     .field("password")
+//!     .field("token")
+//!     .mask("[hidden]")
+//!     .build();
+//!
+//! assert_eq!(redactor.redact_field("password", "secret"), "[hidden]");
+//! assert_eq!(redactor.redact_field("username", "anna"), "anna");
+//! ```
+//!
+//! ## Default redactor
+//!
+//! ```
+//! let redactor = redactkit::default_redactor();
+//!
+//! assert_eq!(redactor.redact_field("password", "secret"), "******");
+//! assert_eq!(redactor.redact_field("api_key", "abc123"), "******");
+//! ```
+//!
+//! ## Regex rules
+//!
+//! ```
+//! # #[cfg(feature = "regex")]
+//! # {
+//! use redactkit::Redactor;
+//!
+//! let redactor = Redactor::builder()
+//!     .field_pattern("(?i)token|secret")
+//!     .unwrap()
+//!     .value_pattern(r"\d{4}", "****")
+//!     .unwrap()
+//!     .build();
+//!
+//! assert_eq!(redactor.redact_field("api_token", "abcd"), "******");
+//! assert_eq!(redactor.redact_field("note", "card 1234"), "card ****");
+//! # }
+//! ```
+//!
+//! ## Tracing integration
+//!
+//! ```
+//! # #[cfg(feature = "tracing")]
+//! # {
+//! use tracing_subscriber::fmt;
+//!
+//! fmt()
+//!     .fmt_fields(redactkit::tracing::redact_fields())
+//!     .init();
+//! # }
+//! ```
 
 #![forbid(unsafe_code)]
 
@@ -18,86 +105,7 @@ pub mod tracing;
 
 pub use builder::RedactorBuilder;
 pub use error::Error;
-pub use redactor::Redactor;
+pub use redactor::{Redactor, default_redactor};
 
 #[cfg(feature = "derive")]
 pub use redactkit_derive::RedactDebug;
-
-use crate::patterns::DEFAULT_SENSITIVE_FIELDS;
-
-/// Returns a redactor with common default sensitive field names.
-///
-/// # Examples
-///
-/// ```
-/// use redactkit::default_redactor;
-///
-/// let redactor = default_redactor();
-///
-/// assert!(redactor.should_redact_field("password"));
-/// assert!(redactor.should_redact_field("token"));
-/// assert!(redactor.should_redact_field("api_key"));
-/// assert!(!redactor.should_redact_field("username"));
-/// ```
-pub fn default_redactor() -> Redactor {
-    Redactor::builder()
-        .fields(DEFAULT_SENSITIVE_FIELDS.iter().copied())
-        .build()
-}
-
-impl Default for Redactor {
-    fn default() -> Self {
-        default_redactor()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn default_redactor_redacts_common_fields() {
-        let redactor = default_redactor();
-
-        assert!(redactor.should_redact_field("password"));
-        assert!(redactor.should_redact_field("passwd"));
-        assert!(redactor.should_redact_field("secret"));
-        assert!(redactor.should_redact_field("token"));
-        assert!(redactor.should_redact_field("access_token"));
-        assert!(redactor.should_redact_field("refresh_token"));
-        assert!(redactor.should_redact_field("api_key"));
-        assert!(redactor.should_redact_field("apikey"));
-        assert!(redactor.should_redact_field("authorization"));
-        assert!(redactor.should_redact_field("private_key"));
-        assert!(redactor.should_redact_field("client_secret"));
-        assert!(redactor.should_redact_field("database_url"));
-    }
-
-    #[test]
-    fn default_redactor_does_not_redact_random_fields() {
-        let redactor = default_redactor();
-
-        assert!(!redactor.should_redact_field("username"));
-        assert!(!redactor.should_redact_field("email"));
-        assert!(!redactor.should_redact_field("host"));
-        assert!(!redactor.should_redact_field("port"));
-    }
-
-    #[test]
-    fn default_redactor_masks_values() {
-        let redactor = default_redactor();
-
-        assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
-
-        assert_eq!(redactor.redact_field("username", "anna"), "anna");
-    }
-
-    #[test]
-    fn redactor_default_is_same_as_default_redactor() {
-        let from_default = Redactor::default();
-        let from_function = default_redactor();
-
-        assert!(from_default.should_redact_field("password"));
-        assert!(from_function.should_redact_field("password"));
-    }
-}
