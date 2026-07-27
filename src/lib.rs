@@ -13,6 +13,9 @@ pub mod error;
 pub mod patterns;
 pub mod redactor;
 
+#[cfg(feature = "tracing")]
+pub mod tracing;
+
 pub use builder::RedactorBuilder;
 pub use error::Error;
 pub use redactor::Redactor;
