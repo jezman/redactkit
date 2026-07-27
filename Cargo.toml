@@ -3,14 +3,14 @@ resolver = "2"
 members = ["redactkit-derive"]
 
 [workspace.package]
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jezman/redactkit"
 
 [workspace.dependencies]
-redactkit-derive = { path = "redactkit-derive", version = "0.0.2" }
+redactkit-derive = { path = "redactkit-derive", version = "0.0.3" }
 syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
