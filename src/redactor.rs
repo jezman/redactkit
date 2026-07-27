@@ -12,7 +12,7 @@ use crate::builder::RedactorBuilder;
 ///     .build();
 ///
 /// assert_eq!(
-///     redactor.redact_field("password", "hunter2"),
+///     redactor.redact_field("password", "s3cr3t"),
 ///     "******"
 /// );
 /// ```
@@ -80,13 +80,13 @@ impl Redactor {
     ///     .build();
     ///
     /// assert_eq!(
-    ///     redactor.redact_field("password", "hunter2"),
+    ///     redactor.redact_field("password", "s3cr3t"),
     ///     "******"
     /// );
     ///
     /// assert_eq!(
-    ///     redactor.redact_field("username", "alice"),
-    ///     "alice"
+    ///     redactor.redact_field("username", "anna"),
+    ///     "anna"
     /// );
     /// ```
     pub fn redact_field(&self, field: &str, value: &str) -> String {
@@ -120,7 +120,7 @@ impl Redactor {
     ///     .field("password")
     ///     .build();
     ///
-    /// assert_eq!(redactor.redact_value("hunter2"), "******");
+    /// assert_eq!(redactor.redact_value("s3cr3t"), "******");
     /// ```
     pub fn redact_value(&self, _value: &str) -> String {
         self.mask.clone()
@@ -143,14 +143,14 @@ mod tests {
     fn redact_field_returns_mask_for_sensitive_field() {
         let redactor = Redactor::builder().field("password").build();
 
-        assert_eq!(redactor.redact_field("password", "hunter2"), "******");
+        assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
     }
 
     #[test]
     fn redact_field_returns_original_for_non_sensitive_field() {
         let redactor = Redactor::builder().field("password").build();
 
-        assert_eq!(redactor.redact_field("username", "alice"), "alice");
+        assert_eq!(redactor.redact_field("username", "anna"), "anna");
     }
 
     #[test]
@@ -169,7 +169,7 @@ mod tests {
             .mask("[hidden]")
             .build();
 
-        assert_eq!(redactor.redact_field("password", "hunter2"), "[hidden]");
+        assert_eq!(redactor.redact_field("password", "s3cr3t"), "[hidden]");
     }
 
     #[test]

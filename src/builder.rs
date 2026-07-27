@@ -97,7 +97,7 @@ impl RedactorBuilder {
     ///     .build();
     ///
     /// assert_eq!(
-    ///     redactor.redact_field("password", "hunter2"),
+    ///     redactor.redact_field("password", "s3cr3t"),
     ///     "[hidden]"
     /// );
     /// ```

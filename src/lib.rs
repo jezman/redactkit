@@ -84,9 +84,9 @@ mod tests {
     fn default_redactor_masks_values() {
         let redactor = default_redactor();
 
-        assert_eq!(redactor.redact_field("password", "hunter2"), "******");
+        assert_eq!(redactor.redact_field("password", "s3cr3t"), "******");
 
-        assert_eq!(redactor.redact_field("username", "alice"), "alice");
+        assert_eq!(redactor.redact_field("username", "anna"), "anna");
     }
 
     #[test]
