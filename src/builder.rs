@@ -119,4 +119,36 @@ impl RedactorBuilder {
             value_patterns: self.value_patterns,
         }
     }
+
+    /// Adds a regex pattern matched against field names.
+    ///
+    /// This method is available only with the `regex` feature.
+    #[cfg(feature = "regex")]
+    pub fn field_pattern(mut self, pattern: &str) -> Result<Self, crate::Error> {
+        let re = regex::Regex::new(pattern).map_err(|source| crate::Error::InvalidRegex {
+            pattern: pattern.to_string(),
+            source,
+        })?;
+
+        self.field_patterns.push(re);
+
+        Ok(self)
+    }
+
+    /// Adds a regex pattern matched against field values.
+    ///
+    /// Matching parts of the value will be replaced with `replacement`.
+    ///
+    /// This method is available only with the `regex` feature.
+    #[cfg(feature = "regex")]
+    pub fn value_pattern(mut self, pattern: &str, replacement: &str) -> Result<Self, crate::Error> {
+        let re = regex::Regex::new(pattern).map_err(|source| crate::Error::InvalidRegex {
+            pattern: pattern.to_string(),
+            source,
+        })?;
+
+        self.value_patterns.push((re, replacement.to_string()));
+
+        Ok(self)
+    }
 }
