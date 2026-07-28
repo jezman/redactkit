@@ -3,7 +3,6 @@
 use redactkit::RedactDebug;
 
 #[derive(RedactDebug)]
-#[allow(dead_code)]
 struct Config {
     username: String,
 
@@ -30,7 +29,6 @@ fn debug_hides_redacted_field_and_shows_normal_field() {
 }
 
 #[derive(RedactDebug)]
-#[allow(dead_code)]
 struct MultipleSecrets {
     username: String,
 

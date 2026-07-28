@@ -1,0 +1,5 @@
+error: RedactSerialize currently supports only structs without generics
+ --> tests/ui_serde/generic_not_supported.rs:4:14
+  |
+4 | struct Config<T> {
+  |              ^^^
