@@ -51,6 +51,7 @@ fn expand_inner(input: &DeriveInput) -> syn::Result<TokenStream2> {
 
         if is_redacted(field)? {
             field_serializations.push(quote! {
+                let _ = &self.#field_ident;
                 state.serialize_field(#field_name, "******")?;
             });
         } else {
@@ -61,7 +62,6 @@ fn expand_inner(input: &DeriveInput) -> syn::Result<TokenStream2> {
     }
 
     Ok(quote! {
-        #[automatically_derived]
         impl #impl_generics ::redactkit::__private::serde::Serialize for #name #ty_generics #where_clause {
             fn serialize<__S>(&self, serializer: __S) -> ::core::result::Result<__S::Ok, __S::Error>
             where
