@@ -31,9 +31,13 @@ pub fn derive_redact_debug(input: TokenStream) -> TokenStream {
     redact_debug::expand(input)
 }
 
-/// Derives a redacting serializer for structs.
+/// Derives `serde::Serialize` for structs, redacting fields marked with `#[redact]`.
 ///
-/// This is currently a stub.
+/// This macro is intended to be used through `redactkit::RedactSerialize`
+/// with the `serde` feature enabled.
+///
+/// Redacted fields are serialized as the mask string `"******"`.
+/// The original values in memory are not modified.
 #[proc_macro_derive(RedactSerialize, attributes(redact))]
 pub fn derive_redact_serialize(input: TokenStream) -> TokenStream {
     redact_serialize::expand(input)

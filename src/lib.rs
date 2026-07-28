@@ -107,6 +107,34 @@ pub mod redactor;
 pub mod tracing;
 
 #[cfg(feature = "serde")]
+/// Derives `Serialize` for structs, redacting fields marked with `#[redact]`.
+///
+/// This derive generates a `serde::Serialize` implementation that replaces
+/// redacted fields with a mask string during serialization.
+///
+/// The original values in memory are not modified.
+///
+/// # Examples
+///
+/// ```
+/// use redactkit::RedactSerialize;
+///
+/// #[derive(RedactSerialize)]
+/// struct Config {
+///     username: String,
+///     #[redact]
+///     password: String,
+/// }
+///
+/// let config = Config {
+///     username: "anna".to_string(),
+///     password: "s3cr3t".to_string(),
+/// };
+///
+/// let json = serde_json::to_string(&config).expect("serialization should succeed");
+///
+/// assert_eq!(json, r#"{"username":"anna","password":"******"}"#);
+/// ```
 pub use redactkit_derive::RedactSerialize;
 
 #[cfg(feature = "serde")]
