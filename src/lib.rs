@@ -106,6 +106,18 @@ pub mod redactor;
 #[cfg(feature = "tracing")]
 pub mod tracing;
 
+#[cfg(feature = "serde")]
+pub use redactkit_derive::RedactSerialize;
+
+#[cfg(feature = "serde")]
+#[doc(hidden)]
+pub mod __private {
+    //! Private re-exports used by `redactkit` derive macros.
+    //!
+    //! This module is not part of the public API.
+    pub use serde;
+}
+
 pub use builder::RedactorBuilder;
 pub use error::Error;
 pub use redactor::{Redactor, default_redactor};

@@ -34,12 +34,15 @@ std = []
 derive = ["dep:redactkit-derive"]
 regex = ["dep:regex", "std"]
 tracing = ["dep:tracing", "dep:tracing-subscriber", "std"]
+serde = ["dep:serde", "derive", "std"]
 
 [dependencies]
 redactkit-derive = { workspace = true, optional = true }
 regex = { version = "1", optional = true }
 tracing = { version = "0.1", optional = true }
 tracing-subscriber = { version = "0.3", optional = true, features = ["fmt"] }
+serde = { version = "1", optional = true }
 
 [dev-dependencies]
 trybuild = "1"
+serde_json = "1"
