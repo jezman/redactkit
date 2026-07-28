@@ -3,7 +3,9 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{Data, DataStruct, DeriveInput, Fields, Meta, parse_macro_input};
+use syn::{Data, DataStruct, DeriveInput, Fields, parse_macro_input};
+
+use crate::attrs::is_redacted;
 
 /// Expands `#[derive(RedactDebug)]`.
 pub(crate) fn expand(input: TokenStream) -> TokenStream {
@@ -59,23 +61,4 @@ fn expand_inner(input: DeriveInput) -> syn::Result<TokenStream2> {
             }
         }
     })
-}
-
-fn is_redacted(field: &syn::Field) -> syn::Result<bool> {
-    for attr in &field.attrs {
-        if !attr.path().is_ident("redact") {
-            continue;
-        }
-
-        if !matches!(attr.meta, Meta::Path(_)) {
-            return Err(syn::Error::new_spanned(
-                attr,
-                "currently only bare `#[redact]` is supported",
-            ));
-        }
-
-        return Ok(true);
-    }
-
-    Ok(false)
 }

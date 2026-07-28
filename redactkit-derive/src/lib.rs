@@ -1,5 +1,6 @@
 //! Derive macros for redactkit.
 
+mod attrs;
 mod redact_debug;
 mod redact_serialize;
 
