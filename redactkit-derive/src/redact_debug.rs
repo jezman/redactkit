@@ -1,11 +1,10 @@
 //! Implementation of `#[derive(RedactDebug)]`.
 
+use crate::attrs::is_redacted;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{Data, DataStruct, DeriveInput, Fields, parse_macro_input};
-
-use crate::attrs::is_redacted;
 
 /// Expands `#[derive(RedactDebug)]`.
 pub(crate) fn expand(input: TokenStream) -> TokenStream {
@@ -32,6 +31,7 @@ fn expand_inner(input: DeriveInput) -> syn::Result<TokenStream2> {
         ));
     };
 
+    let mut redacted_reads = Vec::new();
     let mut field_outputs = Vec::new();
 
     for field in &named_fields.named {
@@ -42,6 +42,10 @@ fn expand_inner(input: DeriveInput) -> syn::Result<TokenStream2> {
         let field_name = field_ident.to_string();
 
         if is_redacted(field)? {
+            redacted_reads.push(quote! {
+                let _ = &self.#field_ident;
+            });
+
             field_outputs.push(quote! {
                 .field(#field_name, &"******")
             });
@@ -55,6 +59,8 @@ fn expand_inner(input: DeriveInput) -> syn::Result<TokenStream2> {
     Ok(quote! {
         impl #impl_generics ::core::fmt::Debug for #name #ty_generics #where_clause {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                #(#redacted_reads)*
+
                 f.debug_struct(#name_str)
                     #(#field_outputs)*
                     .finish()
