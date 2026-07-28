@@ -1,3 +1,5 @@
+mod redact_serialize;
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Data, DataStruct, DeriveInput, Fields, Meta, parse_macro_input};
@@ -96,4 +98,9 @@ fn is_redacted(field: &syn::Field) -> syn::Result<bool> {
     }
 
     Ok(false)
+}
+
+#[proc_macro_derive(RedactSerialize, attributes(redact))]
+pub fn derive_redact_serialize(input: TokenStream) -> TokenStream {
+    redact_serialize::expand(input)
 }
