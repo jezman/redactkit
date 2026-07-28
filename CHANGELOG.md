@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `serde` feature.
+- `RedactSerialize` derive macro for redacting fields during serialization.
+- Example `examples/serde_serialize.rs`.
+
+### Fixed
+
+- `RedactDebug` no longer triggers `dead_code` warnings for fields marked with `#[redact]`.
+- `RedactSerialize` no longer triggers `dead_code` warnings for fields marked with `#[redact]`.
+
 ## [0.1.0]
 
 ### Added
@@ -78,6 +89,7 @@ Initial early preview release.
 - No tracing integration yet.
 - No serde integration yet.
 
+[Unreleased]: https://github.com/jezman/redactkit/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/jezman/redactkit/compare/v0.0.3...v0.1.0
 [0.0.3]: https://github.com/jezman/redactkit/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/jezman/redactkit/compare/v0.0.1...v0.0.2
