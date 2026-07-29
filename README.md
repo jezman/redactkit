@@ -1,10 +1,9 @@
 # redactkit
 
-[![Crates.io](https://img.shields.io/crates/v/redactkit.svg)](https://crates.io/crates/redactkit)
-[![Downloads](https://img.shields.io/crates/d/redactkit.svg)](https://crates.io/crates/redactkit)
-[![Docs](https://docs.rs/redactkit/badge.svg)](https://docs.rs/redactkit)
-[![License](https://img.shields.io/crates/l/redactkit.svg)](#license)
-[![Rust 1.85+](https://img.shields.io/badge/rust-1.85%2B-blue.svg)](https://www.rust-lang.org/)
+[<img alt="github" src="https://img.shields.io/badge/github-jezman/redactkit-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/jezman/redactkit)
+[<img alt="crates.io" src="https://img.shields.io/crates/v/redactkit.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/redactkit)
+[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-redactkit-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/redactkit)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/jezman/redactkit/ci.yml?branch=main&style=for-the-badge" height="20">](https://github.com/jezman/redactkit/actions?query=branch%3Amain)
 
 Keep secrets out of your logs.
 
