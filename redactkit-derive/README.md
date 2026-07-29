@@ -1,6 +1,6 @@
 # redactkit-derive
 
-[<img alt="github" src="https://img.shields.io/badge/github-jezman/redactkit-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/jezman/redactkit-derive)
+[<img alt="github" src="https://img.shields.io/badge/github-jezman/redactkit-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/jezman/redactkit)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/redactkit-derive.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/redactkit-derive)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-redactkit-derive?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/redactkit-derive)
 
