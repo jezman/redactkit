@@ -3,14 +3,14 @@ resolver = "2"
 members = ["redactkit-derive"]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/jezman/redactkit"
 
 [workspace.dependencies]
-redactkit-derive = { path = "redactkit-derive", version = "0.2.0" }
+redactkit-derive = { path = "redactkit-derive", version = "0.2" }
 syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
@@ -27,6 +27,10 @@ documentation = "https://docs.rs/redactkit"
 readme = "README.md"
 keywords = ["redact", "secret", "security", "logging", "tracing"]
 categories = ["development-tools", "rust-patterns"]
+exclude = [
+    ".github/",
+    ".gitignore",
+]
 
 [features]
 default = ["std", "derive"]
